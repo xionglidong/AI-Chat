@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Sparkles, Code, Lightbulb, HelpCircle, MessageSquare, Clock, AlertCircle, CheckCircle } from 'lucide-react';
+import { Send, Bot, User, Sparkles, Code, Lightbulb, HelpCircle, MessageSquare, Clock, AlertCircle, CheckCircle, Brain, Zap, Star, Heart, ThumbsUp, BookOpen, Target, Shield, Rocket, Palette, Music, Camera, Gamepad2, Coffee, Pizza, Sun, Moon, Cloud, Fire, Leaf, Flower } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
@@ -9,6 +9,98 @@ interface Message {
   content: string;
   timestamp: number;
 }
+
+// AI回答增强组件
+const EnhancedAIMessage: React.FC<{ content: string }> = ({ content }) => {
+  // 检测内容类型并添加相应的图标和表情
+  const getMessageEnhancement = (text: string) => {
+    const lowerText = text.toLowerCase();
+    
+    // 代码相关
+    if (lowerText.includes('代码') || lowerText.includes('function') || lowerText.includes('const') || lowerText.includes('var') || lowerText.includes('let')) {
+      return { icon: <Code className="w-4 h-4" />, emoji: '💻', prefix: '代码时间！' };
+    }
+    
+    // 学习/教育相关
+    if (lowerText.includes('学习') || lowerText.includes('教程') || lowerText.includes('解释') || lowerText.includes('概念')) {
+      return { icon: <BookOpen className="w-4 h-4" />, emoji: '📚', prefix: '学习时间！' };
+    }
+    
+    // 创意/设计相关
+    if (lowerText.includes('设计') || lowerText.includes('创意') || lowerText.includes('艺术') || lowerText.includes('颜色') || lowerText.includes('布局')) {
+      return { icon: <Palette className="w-4 h-4" />, emoji: '🎨', prefix: '创意时间！' };
+    }
+    
+    // 音乐相关
+    if (lowerText.includes('音乐') || lowerText.includes('歌曲') || lowerText.includes('旋律') || lowerText.includes('节奏')) {
+      return { icon: <Music className="w-4 h-4" />, emoji: '🎵', prefix: '音乐时间！' };
+    }
+    
+    // 游戏相关
+    if (lowerText.includes('游戏') || lowerText.includes('玩家') || lowerText.includes('关卡') || lowerText.includes('得分')) {
+      return { icon: <Gamepad2 className="w-4 h-4" />, emoji: '🎮', prefix: '游戏时间！' };
+    }
+    
+    // 食物相关
+    if (lowerText.includes('食物') || lowerText.includes('美食') || lowerText.includes('烹饪') || lowerText.includes('食谱')) {
+      return { icon: <Pizza className="w-4 h-4" />, emoji: '🍕', prefix: '美食时间！' };
+    }
+    
+    // 天气相关
+    if (lowerText.includes('天气') || lowerText.includes('温度') || lowerText.includes('下雨') || lowerText.includes('晴天')) {
+      return { icon: <Sun className="w-4 h-4" />, emoji: '☀️', prefix: '天气时间！' };
+    }
+    
+    // 成功/完成相关
+    if (lowerText.includes('成功') || lowerText.includes('完成') || lowerText.includes('搞定') || lowerText.includes('完美')) {
+      return { icon: <CheckCircle className="w-4 h-4" />, emoji: '✅', prefix: '太棒了！' };
+    }
+    
+    // 问题解决相关
+    if (lowerText.includes('问题') || lowerText.includes('解决') || lowerText.includes('修复') || lowerText.includes('错误')) {
+      return { icon: <Target className="w-4 h-4" />, emoji: '🎯', prefix: '问题解决！' };
+    }
+    
+    // 安全/保护相关
+    if (lowerText.includes('安全') || lowerText.includes('保护') || lowerText.includes('隐私') || lowerText.includes('加密')) {
+      return { icon: <Shield className="w-4 h-4" />, emoji: '🛡️', prefix: '安全提醒！' };
+    }
+    
+    // 创新/突破相关
+    if (lowerText.includes('创新') || lowerText.includes('突破') || lowerText.includes('新想法') || lowerText.includes('革命性')) {
+      return { icon: <Rocket className="w-4 h-4" />, emoji: '🚀', prefix: '创新突破！' };
+    }
+    
+    // 智能/AI相关
+    if (lowerText.includes('智能') || lowerText.includes('ai') || lowerText.includes('机器学习') || lowerText.includes('算法')) {
+      return { icon: <Brain className="w-4 h-4" />, emoji: '🧠', prefix: '智能分析！' };
+    }
+    
+    // 能量/动力相关
+    if (lowerText.includes('能量') || lowerText.includes('动力') || lowerText.includes('激情') || lowerText.includes('活力')) {
+      return { icon: <Zap className="w-4 h-4" />, emoji: '⚡', prefix: '充满能量！' };
+    }
+    
+    // 默认情况
+    return { icon: <Lightbulb className="w-4 h-4" />, emoji: '💡', prefix: '好想法！' };
+  };
+
+  const enhancement = getMessageEnhancement(content);
+
+  return (
+    <div className="space-y-2">
+      {/* 增强头部 */}
+      <div className="flex items-center gap-2 text-sm text-blue-600 font-medium">
+        {enhancement.icon}
+        <span>{enhancement.prefix}</span>
+        <span className="text-lg">{enhancement.emoji}</span>
+      </div>
+      
+      {/* Markdown内容 */}
+      <MarkdownMessage content={content} isUser={false} />
+    </div>
+  );
+};
 
 // Markdown渲染组件
 const MarkdownMessage: React.FC<{ content: string; isUser: boolean }> = ({ content, isUser }) => {
@@ -81,13 +173,23 @@ const MarkdownMessage: React.FC<{ content: string; isUser: boolean }> = ({ conte
         ),
         // 列表样式
         ul: ({ children }) => (
-          <ul className="list-disc list-inside my-2 space-y-1">
-            {children}
+          <ul className="list-none my-2 space-y-1">
+            {React.Children.map(children, (child, index) => (
+              <li key={index} className="flex items-start gap-2">
+                <span className="text-blue-500 mt-1">•</span>
+                <span>{child}</span>
+              </li>
+            ))}
           </ul>
         ),
         ol: ({ children }) => (
-          <ol className="list-decimal list-inside my-2 space-y-1">
-            {children}
+          <ol className="list-none my-2 space-y-1">
+            {React.Children.map(children, (child, index) => (
+              <li key={index} className="flex items-start gap-2">
+                <span className="text-green-500 font-bold min-w-[1.5rem]">{index + 1}.</span>
+                <span>{child}</span>
+              </li>
+            ))}
           </ol>
         ),
         // 引用样式
@@ -101,20 +203,48 @@ const MarkdownMessage: React.FC<{ content: string; isUser: boolean }> = ({ conte
         ),
         // 标题样式
         h1: ({ children }) => (
-          <h1 className="text-2xl font-bold my-4 text-gray-800">
+          <h1 className="text-2xl font-bold my-4 text-gray-800 flex items-center gap-2">
+            <Star className="w-6 h-6 text-yellow-500" />
             {children}
           </h1>
         ),
         h2: ({ children }) => (
-          <h2 className="text-xl font-bold my-3 text-gray-800">
+          <h2 className="text-xl font-bold my-3 text-gray-800 flex items-center gap-2">
+            <Target className="w-5 h-5 text-blue-500" />
             {children}
           </h2>
         ),
         h3: ({ children }) => (
-          <h3 className="text-lg font-bold my-2 text-gray-800">
+          <h3 className="text-lg font-bold my-2 text-gray-800 flex items-center gap-2">
+            <Zap className="w-4 h-4 text-orange-500" />
             {children}
           </h3>
         ),
+        // 段落样式 - 添加表情支持
+        p: ({ children }) => {
+          const text = children?.toString() || '';
+          const lowerText = text.toLowerCase();
+          
+          let emoji = '';
+          if (lowerText.includes('成功') || lowerText.includes('完成')) emoji = '🎉';
+          else if (lowerText.includes('错误') || lowerText.includes('问题')) emoji = '⚠️';
+          else if (lowerText.includes('重要') || lowerText.includes('注意')) emoji = '💡';
+          else if (lowerText.includes('喜欢') || lowerText.includes('爱')) emoji = '❤️';
+          else if (lowerText.includes('谢谢') || lowerText.includes('感谢')) emoji = '🙏';
+          else if (lowerText.includes('加油') || lowerText.includes('努力')) emoji = '💪';
+          else if (lowerText.includes('开心') || lowerText.includes('快乐')) emoji = '😊';
+          else if (lowerText.includes('惊讶') || lowerText.includes('神奇')) emoji = '🤯';
+          else if (lowerText.includes('时间') || lowerText.includes('等待')) emoji = '⏰';
+          else if (lowerText.includes('金钱') || lowerText.includes('价格')) emoji = '💰';
+          
+          return (
+            <p className="text-sm leading-relaxed mb-3">
+              {emoji && <span className="mr-2">{emoji}</span>}
+              {children}
+            </p>
+          );
+        },
+        
         // 分割线样式
         hr: () => (
           <hr className="my-4 border-gray-300" />
@@ -130,15 +260,17 @@ export default function App() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: `你好！我是你的AI助手，有什么可以帮助你的吗？
+      content: `👋 你好！我是你的AI助手，有什么可以帮助你的吗？
 
 我可以帮助你：
 - **编写代码** 💻 - 支持多种编程语言
 - **解释概念** 💡 - 用简单易懂的方式说明
 - **解决问题** 🔧 - 分析并提供解决方案
 - **创意写作** ✨ - 帮助创作各种内容
+- **学习指导** 📚 - 提供学习建议和方法
+- **技术咨询** 🛠️ - 解答技术问题
 
-试试问我一些Markdown格式的问题吧！`,
+🎯 试试问我一些问题吧！`,
       timestamp: Date.now() - 60000
     }
   ]);
@@ -188,7 +320,7 @@ export default function App() {
         const txt = await res.text();
         setMessages((prev) => [
           ...prev,
-          { role: 'assistant', content: `❌ **错误**: ${txt}`, timestamp: Date.now() },
+          { role: 'assistant', content: `😔 **错误**: ${txt}`, timestamp: Date.now() },
         ]);
       } else {
         const json = await res.json();
@@ -204,7 +336,7 @@ export default function App() {
     } catch (e: any) {
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: `⚠️ **请求异常**: ${e.message}`, timestamp: Date.now() },
+        { role: 'assistant', content: `😅 **请求异常**: ${e.message}`, timestamp: Date.now() },
       ]);
     } finally {
       setLoading(false);
@@ -229,7 +361,6 @@ export default function App() {
               <h1 className="text-2xl font-bold">AI 智能助手</h1>
               <p className="text-white/80 text-sm flex items-center gap-1">
                 <Code className="w-4 h-4" />
-                支持 Markdown 格式
               </p>
             </div>
           </div>
@@ -285,7 +416,7 @@ export default function App() {
                       </p>
                     ) : (
                       <div className="text-sm leading-relaxed">
-                        <MarkdownMessage content={msg.content} isUser={false} />
+                        <EnhancedAIMessage content={msg.content} />
                       </div>
                     )}
                   </div>
@@ -309,14 +440,14 @@ export default function App() {
                 <Bot className="w-4 h-4 text-white" />
               </div>
               <div className="bg-white/90 px-6 py-4 rounded-2xl shadow-lg border border-gray-200/50">
-                <div className="flex items-center gap-2">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                                  <div className="flex items-center gap-2">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                    </div>
+                    <span className="text-sm text-gray-500">🤔 AI 正在思考中...</span>
                   </div>
-                  <span className="text-sm text-gray-500">AI 正在思考中...</span>
-                </div>
               </div>
             </div>
           )}
@@ -343,7 +474,7 @@ export default function App() {
                   e.target.style.height = e.target.scrollHeight + 'px';
                 }}
                 disabled={loading}
-                placeholder="输入你的问题... (支持 Markdown 格式)"
+                placeholder="💬 输入你的问题..."
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();

@@ -162,6 +162,40 @@ body{font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Ro
   transform: scale(1.1);
 }
 
+/* 表情动画 */
+.emoji-bounce {
+  animation: emojiBounce 0.6s ease-in-out;
+}
+
+@keyframes emojiBounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  40% {
+    transform: translateY(-5px) scale(1.1);
+  }
+  60% {
+    transform: translateY(-2px) scale(1.05);
+  }
+}
+
+/* 增强消息头部样式 */
+.enhanced-message-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 表情悬停效果 */
+.emoji-hover {
+  transition: all 0.3s ease;
+}
+
+.emoji-hover:hover {
+  transform: scale(1.2) rotate(5deg);
+}
+
 .hljs-keyword {
   color: #f472b6 !important;
 }
