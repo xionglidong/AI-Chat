@@ -136,6 +136,32 @@ body{font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Ro
   color: #f9fafb !important;
 }
 
+/* 图标动画 */
+.icon-bounce {
+  animation: iconBounce 0.6s ease-in-out;
+}
+
+@keyframes iconBounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-3px);
+  }
+  60% {
+    transform: translateY(-1px);
+  }
+}
+
+/* 输入框图标样式 */
+.input-icon {
+  transition: all 0.2s ease;
+}
+
+.input-icon:hover {
+  transform: scale(1.1);
+}
+
 .hljs-keyword {
   color: #f472b6 !important;
 }
