@@ -1,7 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import ReactMarkdown from 'react-markdown';
-import rehypeHighlight from 'rehype-highlight';
-import 'highlight.js/styles/github.css';
+import { Send, Bot, User } from 'lucide-react';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -10,14 +8,13 @@ interface Message {
 }
 
 export default function App() {
-  const [messages, setMessages] = useState<Message[]>(() => {
-    try {
-      const stored = localStorage.getItem('chatMessages');
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      role: 'assistant',
+      content: '你好！我是你的AI助手，有什么可以帮助你的吗？',
+      timestamp: Date.now() - 60000
     }
-  });
+  ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -27,22 +24,19 @@ export default function App() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // 本地缓存聊天记录
-  useEffect(() => {
-    localStorage.setItem('chatMessages', JSON.stringify(messages));
-  }, [messages]);
-
   const sendMessage = async () => {
     if (!input.trim()) return;
+    
     const userMsg: Message = {
       role: 'user',
       content: input.trim(),
       timestamp: Date.now(),
     };
+    
     setMessages((prev) => [...prev, userMsg]);
     setInput('');
     setLoading(true);
-
+    
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
@@ -90,117 +84,171 @@ export default function App() {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: 760,
-        margin: 'auto',
-        padding: 20,
-        height: '90vh',
-        display: 'flex',
-        flexDirection: 'column',
-        border: '1px solid #ddd',
-        borderRadius: 8,
-        backgroundColor: '#fff',
-      }}
-    >
-      <h1 style={{ textAlign: 'center' }}>
-        Cloudflare Pages + React + OpenAI Chat
-      </h1>
-
-      <div
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: '0 12px',
-          marginBottom: 12,
-          backgroundColor: '#f9f9f9',
-          borderRadius: 6,
-          boxShadow: 'inset 0 0 5px rgba(0,0,0,0.05)',
-        }}
-      >
-        {messages.map((msg, i) => (
-          <div
-            key={i}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start',
-              margin: '8px 0',
-            }}
-          >
-            <div
-              style={{
-                maxWidth: '70%',
-                backgroundColor: msg.role === 'user' ? '#007bff' : '#e5e5ea',
-                color: msg.role === 'user' ? 'white' : 'black',
-                padding: '10px 14px',
-                borderRadius: 18,
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
-                fontSize: 16,
-                boxShadow:
-                  msg.role === 'user'
-                    ? '0 1px 3px rgba(0, 123, 255, 0.4)'
-                    : '0 1px 3px rgba(0,0,0,0.1)',
-              }}
-            >
-              <ReactMarkdown rehypePlugins={[rehypeHighlight]}>
-                {msg.content}
-              </ReactMarkdown>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4">
+      <div className="max-w-4xl mx-auto h-[90vh] flex flex-col bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 p-6 text-white">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+              <Bot className="w-6 h-6" />
             </div>
-            <div
-              style={{
-                fontSize: 12,
-                color: '#666',
-                marginTop: 2,
-                userSelect: 'none',
-              }}
-            >
-              {formatTime(msg.timestamp)}
+            <div>
+              <h1 className="text-2xl font-bold">AI 智能助手</h1>
+              <p className="text-white/80 text-sm">随时为你提供帮助</p>
             </div>
           </div>
-        ))}
-        <div ref={messagesEndRef} />
+        </div>
+
+        {/* Messages Container */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-transparent to-blue-50/30">
+          {messages.map((msg, i) => (
+            <div
+              key={i}
+              className={`flex items-start gap-3 ${
+                msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'
+              } animate-fade-in`}
+              style={{
+                animation: `fadeInUp 0.5s ease-out ${i * 0.1}s both`
+              }}
+            >
+              {/* Avatar */}
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                msg.role === 'user' 
+                  ? 'bg-gradient-to-r from-blue-500 to-purple-500' 
+                  : 'bg-gradient-to-r from-green-400 to-blue-500'
+              }`}>
+                {msg.role === 'user' ? (
+                  <User className="w-4 h-4 text-white" />
+                ) : (
+                  <Bot className="w-4 h-4 text-white" />
+                )}
+              </div>
+
+              {/* Message Bubble */}
+              <div className={`max-w-[70%] ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
+                <div
+                  className={`relative px-6 py-4 rounded-2xl shadow-lg backdrop-blur-sm ${
+                    msg.role === 'user'
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
+                      : 'bg-white/90 text-gray-800 border border-gray-200/50'
+                  }`}
+                >
+                  {/* Message tail */}
+                  <div
+                    className={`absolute top-4 w-3 h-3 rotate-45 ${
+                      msg.role === 'user'
+                        ? 'right-[-6px] bg-purple-600'
+                        : 'left-[-6px] bg-white border-l border-b border-gray-200/50'
+                    }`}
+                  />
+                  
+                  <div className="relative z-10">
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                      {msg.content}
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Timestamp */}
+                <p className={`text-xs text-gray-500 mt-1 ${
+                  msg.role === 'user' ? 'text-right' : 'text-left'
+                }`}>
+                  {formatTime(msg.timestamp)}
+                </p>
+              </div>
+            </div>
+          ))}
+          
+          {/* Loading indicator */}
+          {loading && (
+            <div className="flex items-start gap-3 animate-pulse">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-400 to-blue-500 flex items-center justify-center">
+                <Bot className="w-4 h-4 text-white" />
+              </div>
+              <div className="bg-white/90 px-6 py-4 rounded-2xl shadow-lg border border-gray-200/50">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input Area */}
+        <div className="p-6 bg-white/60 backdrop-blur-sm border-t border-gray-200/30">
+          <div className="flex items-end gap-4">
+            <div className="flex-1 relative">
+              <textarea
+                rows={1}
+                className="w-full px-6 py-4 bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent placeholder-gray-400 shadow-lg text-gray-800"
+                value={input}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  // Auto-resize textarea
+                  e.target.style.height = 'auto';
+                  e.target.style.height = e.target.scrollHeight + 'px';
+                }}
+                disabled={loading}
+                placeholder="输入你的问题..."
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                  }
+                }}
+                style={{ maxHeight: '120px' }}
+              />
+            </div>
+            
+            <button
+              onClick={sendMessage}
+              disabled={loading || !input.trim()}
+              className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-2xl flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            >
+              <Send className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div style={{ display: 'flex' }}>
-        <textarea
-          rows={2}
-          style={{
-            flex: 1,
-            fontSize: 16,
-            padding: 8,
-            borderRadius: 6,
-            border: '1px solid #ccc',
-            resize: 'none',
-          }}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          disabled={loading}
-          placeholder="输入你的问题..."
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              sendMessage();
-            }
-          }}
-        />
-        <button
-          style={{
-            marginLeft: 8,
-            padding: '0 20px',
-            borderRadius: 6,
-            border: 'none',
-            backgroundColor: '#007bff',
-            color: 'white',
-            cursor: loading ? 'not-allowed' : 'pointer',
-          }}
-          onClick={sendMessage}
-          disabled={loading}
-        >
-          {loading ? '发送中...' : '发送'}
-        </button>
-      </div>
+      <style jsx>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-fade-in {
+          animation: fadeInUp 0.5s ease-out;
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+          width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+          background: rgba(0, 0, 0, 0.1);
+          border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+          background: rgba(0, 0, 0, 0.2);
+        }
+      `}</style>
     </div>
   );
 }
