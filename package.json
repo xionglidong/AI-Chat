@@ -11,7 +11,9 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "lucide-react": "^0.539.0",
-    "tailwindcss": "^4.1.11"
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "rehype-highlight": "^7.0.2"
   },
   "devDependencies": {
     "@types/react": "^18.0.28",

@@ -1,5 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -7,11 +10,114 @@ interface Message {
   timestamp: number;
 }
 
+// Markdown渲染组件
+const MarkdownMessage: React.FC<{ content: string; isUser: boolean }> = ({ content, isUser }) => {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      rehypePlugins={[rehypeHighlight]}
+      className={`markdown-content ${isUser ? 'user-markdown' : 'assistant-markdown'}`}
+      components={{
+        // 代码块样式
+        code: ({ node, inline, className, children, ...props }) => {
+          const match = /language-(\w+)/.exec(className || '');
+          return !inline ? (
+            <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-3">
+              <code className={className} {...props}>
+                {children}
+              </code>
+            </pre>
+          ) : (
+            <code className="bg-gray-200 text-gray-800 px-1 py-0.5 rounded text-sm" {...props}>
+              {children}
+            </code>
+          );
+        },
+        // 链接样式
+        a: ({ children, href }) => (
+          <a 
+            href={href} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:text-blue-800 underline"
+          >
+            {children}
+          </a>
+        ),
+        // 表格样式
+        table: ({ children }) => (
+          <div className="overflow-x-auto my-4">
+            <table className="min-w-full border border-gray-300 rounded-lg">
+              {children}
+            </table>
+          </div>
+        ),
+        th: ({ children }) => (
+          <th className="border border-gray-300 px-4 py-2 bg-gray-100 font-semibold">
+            {children}
+          </th>
+        ),
+        td: ({ children }) => (
+          <td className="border border-gray-300 px-4 py-2">
+            {children}
+          </td>
+        ),
+        // 列表样式
+        ul: ({ children }) => (
+          <ul className="list-disc list-inside my-2 space-y-1">
+            {children}
+          </ul>
+        ),
+        ol: ({ children }) => (
+          <ol className="list-decimal list-inside my-2 space-y-1">
+            {children}
+          </ol>
+        ),
+        // 引用样式
+        blockquote: ({ children }) => (
+          <blockquote className="border-l-4 border-blue-500 pl-4 my-3 italic bg-blue-50 py-2 rounded-r">
+            {children}
+          </blockquote>
+        ),
+        // 标题样式
+        h1: ({ children }) => (
+          <h1 className="text-2xl font-bold my-4 text-gray-800">
+            {children}
+          </h1>
+        ),
+        h2: ({ children }) => (
+          <h2 className="text-xl font-bold my-3 text-gray-800">
+            {children}
+          </h2>
+        ),
+        h3: ({ children }) => (
+          <h3 className="text-lg font-bold my-2 text-gray-800">
+            {children}
+          </h3>
+        ),
+        // 分割线样式
+        hr: () => (
+          <hr className="my-4 border-gray-300" />
+        ),
+      }}
+    >
+      {content}
+    </ReactMarkdown>
+  );
+};
+
 export default function App() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: '你好！我是你的AI助手，有什么可以帮助你的吗？',
+      content: `你好！我是你的AI助手，有什么可以帮助你的吗？
+
+我可以帮助你：
+- **编写代码** - 支持多种编程语言
+- **解释概念** - 用简单易懂的方式说明
+- **解决问题** - 分析并提供解决方案
+
+试试问我一些Markdown格式的问题吧！`,
       timestamp: Date.now() - 60000
     }
   ]);
@@ -55,7 +161,7 @@ export default function App() {
         const txt = await res.text();
         setMessages((prev) => [
           ...prev,
-          { role: 'assistant', content: `错误: ${txt}`, timestamp: Date.now() },
+          { role: 'assistant', content: `**错误**: ${txt}`, timestamp: Date.now() },
         ]);
       } else {
         const json = await res.json();
@@ -71,7 +177,7 @@ export default function App() {
     } catch (e: any) {
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: `请求异常: ${e.message}`, timestamp: Date.now() },
+        { role: 'assistant', content: `**请求异常**: ${e.message}`, timestamp: Date.now() },
       ]);
     } finally {
       setLoading(false);
@@ -94,7 +200,7 @@ export default function App() {
             </div>
             <div>
               <h1 className="text-2xl font-bold">AI 智能助手</h1>
-              <p className="text-white/80 text-sm">随时为你提供帮助</p>
+              <p className="text-white/80 text-sm">支持 Markdown 格式</p>
             </div>
           </div>
         </div>
@@ -143,9 +249,15 @@ export default function App() {
                   />
                   
                   <div className="relative z-10">
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-                      {msg.content}
-                    </p>
+                    {msg.role === 'user' ? (
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                        {msg.content}
+                      </p>
+                    ) : (
+                      <div className="text-sm leading-relaxed">
+                        <MarkdownMessage content={msg.content} isUser={false} />
+                      </div>
+                    )}
                   </div>
                 </div>
                 
@@ -193,7 +305,7 @@ export default function App() {
                   e.target.style.height = e.target.scrollHeight + 'px';
                 }}
                 disabled={loading}
-                placeholder="输入你的问题..."
+                placeholder="输入你的问题... (支持 Markdown 格式)"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -247,6 +359,124 @@ export default function App() {
         
         ::-webkit-scrollbar-thumb:hover {
           background: rgba(0, 0, 0, 0.2);
+        }
+
+        /* Markdown 样式 */
+        .markdown-content {
+          line-height: 1.6;
+        }
+
+        .markdown-content p {
+          margin-bottom: 0.75rem;
+        }
+
+        .markdown-content p:last-child {
+          margin-bottom: 0;
+        }
+
+        .markdown-content strong {
+          font-weight: 600;
+        }
+
+        .markdown-content em {
+          font-style: italic;
+        }
+
+        .markdown-content code {
+          font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+        }
+
+        .markdown-content pre {
+          margin: 1rem 0;
+        }
+
+        .markdown-content pre code {
+          font-size: 0.875rem;
+        }
+
+        .markdown-content ul, .markdown-content ol {
+          margin: 0.75rem 0;
+          padding-left: 1.5rem;
+        }
+
+        .markdown-content li {
+          margin: 0.25rem 0;
+        }
+
+        .markdown-content blockquote {
+          margin: 1rem 0;
+          padding: 0.75rem 1rem;
+          border-left: 4px solid #3b82f6;
+          background-color: #eff6ff;
+          border-radius: 0.375rem;
+        }
+
+        .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+          margin: 1rem 0 0.5rem 0;
+          font-weight: 600;
+          line-height: 1.25;
+        }
+
+        .markdown-content h1 {
+          font-size: 1.5rem;
+        }
+
+        .markdown-content h2 {
+          font-size: 1.25rem;
+        }
+
+        .markdown-content h3 {
+          font-size: 1.125rem;
+        }
+
+        .markdown-content table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 1rem 0;
+        }
+
+        .markdown-content th,
+        .markdown-content td {
+          padding: 0.5rem;
+          border: 1px solid #d1d5db;
+          text-align: left;
+        }
+
+        .markdown-content th {
+          background-color: #f3f4f6;
+          font-weight: 600;
+        }
+
+        .markdown-content a {
+          color: #2563eb;
+          text-decoration: underline;
+        }
+
+        .markdown-content a:hover {
+          color: #1d4ed8;
+        }
+
+        /* 用户消息的 Markdown 样式调整 */
+        .user-markdown {
+          color: white;
+        }
+
+        .user-markdown a {
+          color: #93c5fd;
+        }
+
+        .user-markdown a:hover {
+          color: #dbeafe;
+        }
+
+        .user-markdown code {
+          background-color: rgba(255, 255, 255, 0.2);
+          color: white;
+        }
+
+        .user-markdown blockquote {
+          background-color: rgba(255, 255, 255, 0.1);
+          border-left-color: rgba(255, 255, 255, 0.5);
         }
       `}</style>
     </div>
