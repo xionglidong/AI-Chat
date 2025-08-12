@@ -174,24 +174,17 @@ const MarkdownMessage: React.FC<{ content: string; isUser: boolean }> = ({ conte
         // 列表样式
         ul: ({ children }) => (
           <ul className="list-none my-2 space-y-1">
-            {React.Children.map(children, (child, index) => (
-              <li key={index} className="flex items-start gap-2">
-                <span className="text-blue-500 mt-1">•</span>
-                <span>{child}</span>
-              </li>
-            ))}
+            {children}
           </ul>
         ),
         ol: ({ children }) => (
           <ol className="list-none my-2 space-y-1">
-            {React.Children.map(children, (child, index) => (
-              <li key={index} className="flex items-start gap-2">
-                <span className="text-green-500 font-bold min-w-[1.5rem]">{index + 1}.</span>
-                <span>{child}</span>
-              </li>
-            ))}
+            {children}
           </ol>
         ),
+        li: ({ children }) => {
+          return <li>{children}</li>;
+        },
         // 引用样式
         blockquote: ({ children }) => (
           <blockquote className="border-l-4 border-blue-500 pl-4 my-3 italic bg-blue-50 py-2 rounded-r flex items-start gap-2">

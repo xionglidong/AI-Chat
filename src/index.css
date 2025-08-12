@@ -44,11 +44,41 @@ body{font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Ro
 
 .markdown-content ul, .markdown-content ol {
   margin: 0.75rem 0;
-  padding-left: 1.5rem;
+  padding-left: 0;
+  list-style: none;
 }
 
 .markdown-content li {
   margin: 0.25rem 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+/* 无序列表样式 */
+.markdown-content ul li::before {
+  content: "•";
+  color: #3b82f6;
+  font-weight: bold;
+  margin-top: 0.25rem;
+  flex-shrink: 0;
+}
+
+/* 有序列表样式 */
+.markdown-content ol {
+  counter-reset: list-counter;
+}
+
+.markdown-content ol li {
+  counter-increment: list-counter;
+}
+
+.markdown-content ol li::before {
+  content: counter(list-counter) ".";
+  color: #10b981;
+  font-weight: bold;
+  min-width: 1.5rem;
+  flex-shrink: 0;
 }
 
 .markdown-content blockquote {
