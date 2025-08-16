@@ -130,6 +130,77 @@ const financeTools = {
       emergencyFund: Math.round(emergencyFund),
       recommendation: `建议准备${monthsNeeded}个月的应急基金，约${Math.round(emergencyFund)}元`
     };
+  },
+
+  // 退休规划计算
+  retirementCalculator: (currentAge: number, retirementAge: number, currentSavings: number, monthlyContribution: number, expectedReturn: number) => {
+    const yearsToRetirement = retirementAge - currentAge;
+    const monthlyReturn = expectedReturn / 100 / 12;
+    const totalMonths = yearsToRetirement * 12;
+    
+    // 计算复利增长
+    let futureValue = currentSavings;
+    for (let i = 0; i < totalMonths; i++) {
+      futureValue = futureValue * (1 + monthlyReturn) + monthlyContribution;
+    }
+    
+    return {
+      currentAge,
+      retirementAge,
+      yearsToRetirement,
+      currentSavings,
+      monthlyContribution,
+      expectedReturn,
+      futureValue: Math.round(futureValue),
+      totalContribution: monthlyContribution * totalMonths,
+      investmentGrowth: Math.round(futureValue - currentSavings - (monthlyContribution * totalMonths))
+    };
+  },
+
+  // 资产配置建议
+  assetAllocation: (age: number, riskTolerance: 'low' | 'medium' | 'high', investmentGoal: string) => {
+    let stocks = 0;
+    let bonds = 0;
+    let cash = 0;
+    let realEstate = 0;
+    
+    // 基于年龄的配置
+    if (age < 30) {
+      stocks = 70;
+      bonds = 20;
+      cash = 10;
+    } else if (age < 50) {
+      stocks = 60;
+      bonds = 30;
+      cash = 10;
+    } else if (age < 65) {
+      stocks = 50;
+      bonds = 35;
+      cash = 15;
+    } else {
+      stocks = 30;
+      bonds = 50;
+      cash = 20;
+    }
+    
+    // 基于风险承受能力的调整
+    if (riskTolerance === 'low') {
+      stocks -= 20;
+      bonds += 15;
+      cash += 5;
+    } else if (riskTolerance === 'high') {
+      stocks += 15;
+      bonds -= 10;
+      cash -= 5;
+    }
+    
+    return {
+      stocks: Math.max(0, Math.min(100, stocks)),
+      bonds: Math.max(0, Math.min(100, bonds)),
+      cash: Math.max(0, Math.min(100, cash)),
+      realEstate: Math.max(0, Math.min(100, realEstate)),
+      recommendation: `基于您的年龄(${age}岁)和风险承受能力(${riskTolerance})，建议的资产配置如下`
+    };
   }
 };
 
@@ -162,6 +233,20 @@ const processFinanceMessage = async (userMessage: string, messageHistory: Messag
 - 这是一个${result.roi > 50 ? '非常优秀' : result.roi > 20 ? '不错' : '稳健'}的投资回报
 - 建议考虑通货膨胀因素，实际购买力可能有所下降
 - 可以考虑分散投资以降低风险`;
+    } else {
+      return `📈 **投资回报率计算**
+
+为了计算投资回报率，请提供以下信息：
+
+**需要的信息：**
+- 投资本金金额
+- 年化收益率（百分比）
+- 投资年限
+
+**示例：**
+"我想投资10万元，年化收益率8%，5年后能赚多少？"
+
+请提供具体的数字，我将为您计算投资回报！`;
     }
   }
   
@@ -190,6 +275,20 @@ const processFinanceMessage = async (userMessage: string, messageHistory: Messag
 - 月还款额占收入比例建议不超过30%
 - 可以考虑提前还款以减少利息支出
 - 关注利率变化，适时调整还款策略`;
+    } else {
+      return `🏠 **房贷还款计算**
+
+为了计算房贷还款，请提供以下信息：
+
+**需要的信息：**
+- 贷款金额
+- 年利率（百分比）
+- 贷款年限
+
+**示例：**
+"帮我计算房贷100万，利率4.5%，30年每月还款多少？"
+
+请提供具体的数字，我将为您计算还款计划！`;
     }
   }
   
@@ -210,6 +309,101 @@ const processFinanceMessage = async (userMessage: string, messageHistory: Messag
 "我今年30岁，年收入50万，投资目标稳健，投资时间5年，风险承受能力中等"
 
 请提供您的具体信息，我将为您进行专业的风险评估！`;
+  }
+  
+  // 退休规划
+  if (lowerMessage.includes('退休') || lowerMessage.includes('养老')) {
+    const numbers = userMessage.match(/\d+/g);
+    if (numbers && numbers.length >= 5) {
+      const currentAge = parseFloat(numbers[0]);
+      const retirementAge = parseFloat(numbers[1]);
+      const currentSavings = parseFloat(numbers[2]);
+      const monthlyContribution = parseFloat(numbers[3]);
+      const expectedReturn = parseFloat(numbers[4]);
+      
+      const result = financeTools.retirementCalculator(currentAge, retirementAge, currentSavings, monthlyContribution, expectedReturn);
+      return `👴 **退休规划计算**
+
+**基本信息：**
+- 当前年龄：${result.currentAge} 岁
+- 退休年龄：${result.retirementAge} 岁
+- 距离退休：${result.yearsToRetirement} 年
+
+**财务状况：**
+- 当前储蓄：${result.currentSavings.toLocaleString()} 元
+- 月投入：${result.monthlyContribution.toLocaleString()} 元
+- 预期年化收益：${result.expectedReturn}%
+
+**退休时资产：**
+- 总资产：${result.futureValue.toLocaleString()} 元
+- 总投入：${result.totalContribution.toLocaleString()} 元
+- 投资收益：${result.investmentGrowth.toLocaleString()} 元
+
+💡 **退休建议：**
+- 建议退休后每年提取不超过总资产的4%
+- 考虑通货膨胀对购买力的影响
+- 可以适当增加月投入以提高退休生活质量`;
+    } else {
+      return `👴 **退休规划计算**
+
+为了计算退休规划，请提供以下信息：
+
+**需要的信息：**
+- 当前年龄
+- 退休年龄
+- 当前储蓄金额
+- 每月投入金额
+- 预期年化收益率
+
+**示例：**
+"我今年30岁，计划65岁退休，现在有20万存款，每月投入5000元，预期年化收益6%，退休时有多少钱？"
+
+请提供具体的数字，我将为您计算退休规划！`;
+    }
+  }
+  
+  // 资产配置
+  if (lowerMessage.includes('资产配置') || lowerMessage.includes('投资组合')) {
+    const numbers = userMessage.match(/\d+/g);
+    if (numbers && numbers.length >= 1) {
+      const age = parseFloat(numbers[0]);
+      const riskTolerance = lowerMessage.includes('高风险') ? 'high' : lowerMessage.includes('低风险') ? 'low' : 'medium';
+      
+      const result = financeTools.assetAllocation(age, riskTolerance, 'retirement');
+      return `📊 **资产配置建议**
+
+${result.recommendation}：
+
+**建议配置比例：**
+- 🏢 股票/基金：${result.stocks}%
+- 📜 债券：${result.bonds}%
+- 💰 现金/存款：${result.cash}%
+- 🏠 房地产：${result.realEstate}%
+
+**配置说明：**
+- **股票/基金**：长期增长潜力，适合年轻投资者
+- **债券**：稳定收益，降低组合波动性
+- **现金/存款**：流动性保障，应对紧急情况
+- **房地产**：抗通胀，提供稳定现金流
+
+💡 **投资建议：**
+- 定期重新平衡投资组合
+- 根据市场情况调整配置比例
+- 考虑分散投资到不同行业和地区`;
+    } else {
+      return `📊 **资产配置建议**
+
+为了提供资产配置建议，请提供以下信息：
+
+**需要的信息：**
+- 您的年龄
+- 风险承受能力（低/中/高）
+
+**示例：**
+"我今年35岁，风险承受能力中等，请给我资产配置建议"
+
+请提供您的具体信息，我将为您提供个性化的资产配置建议！`;
+    }
   }
   
   // 应急基金计算
